@@ -1,5 +1,6 @@
-# go-sigma-rule-engine
-
+# Fork of go-sigma-rule-engine
+#  Implemented support for multipart yml files (several rules in one yml file divided with "---")
+# removed redundant (imho) structs
 > Golang library that implements a sigma log rule parser and match engine.
 
 [Sigma](https://github.com/Neo23x0/sigma) is a open and vendor-agnostic signature format for logs. Official sigma repository includes rule format definition, a public ruleset, and python tooling for converting rules into various SIEM alert formats. Essentially, it fills the same role in logging space as Suricata does in packet capture and YARA for file analysis. However, unlike those projects, the open Sigma project does not act as a match engine. Users are still expected to run a supported SIEM or log management solution, with necessary licencing to enable alerting features.
