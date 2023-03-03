@@ -4,22 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v2"
 )
-
-// RuleHandle is a meta object containing all fields from raw yaml, but is enhanced to also
-// hold debugging info from the tool, such as source file path, etc
-type RuleHandle struct {
-	Rule
-
-	Path         string `json:"path"`
-	Multipart    bool   `json:"multipart"`
-	NoCollapseWS bool   `json:"noCollapseWS"`
-}
 
 // Rule defines raw rule conforming to sigma rule specification
 // https://github.com/Neo23x0/sigma/wiki/Specification
@@ -40,46 +31,60 @@ type Rule struct {
 	Tags      `yaml:"tags" json:"tags"`
 }
 
-// NewRuleList reads a list of sigma rule paths and parses them to rule objects
-func NewRuleList(files []string, skip, noCollapseWS bool) ([]RuleHandle, error) {
+// RulesFromFiles reads a list of sigma rule paths and parses them to rule objects
+func RulesFromFiles(files []string) ([]Rule, error) {
 	if len(files) == 0 {
 		return nil, fmt.Errorf("missing rule file list")
 	}
-	errs := make([]ErrParseYaml, 0)
-	rules := make([]RuleHandle, 0)
-loop:
-	for i, path := range files {
+
+	rules := make([]Rule, 0, len(files))
+
+	for _, path := range files {
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return nil, err
 		}
+
 		var r Rule
-		if err := yaml.Unmarshal(data, &r); err != nil {
-			if skip {
-				errs = append(errs, ErrParseYaml{
-					Path:  path,
-					Count: i,
-					Err:   err,
-				})
-				continue loop
+
+		if bytes.HasPrefix(data, []byte("---")) && bytes.Contains(data, []byte("---")) {
+			multipartData, err := splitMultipartYAML(data)
+			if err != nil {
+				return nil, err
 			}
-			return nil, &ErrParseYaml{Err: err, Path: path}
+
+			r, err := rulesFromBytes(multipartData)
+			if err != nil {
+				return nil, err
+			}
+
+			rules = append(rules, r...)
+		} else {
+			if err := yaml.Unmarshal(data, &r); err != nil {
+				return nil, &ErrParseYaml{Err: err, Path: path}
+			}
+
+			rules = append(rules, r)
 		}
-		rules = append(rules, RuleHandle{
-			Path:         path,
-			Rule:         r,
-			NoCollapseWS: noCollapseWS,
-			Multipart: func() bool {
-				return !bytes.HasPrefix(data, []byte("---")) && bytes.Contains(data, []byte("---"))
-			}(),
-		})
 	}
-	return rules, func() error {
-		if len(errs) > 0 {
-			return ErrBulkParseYaml{Errs: errs}
+
+	return rules, nil
+}
+
+// rules from bytes returns slice of rules by unmarshalling given slice of bytes.
+func rulesFromBytes(rulesBytes [][]byte) ([]Rule, error) {
+	rules := make([]Rule, 0, len(rulesBytes))
+	for _, ruleBytes := range rulesBytes {
+		var r Rule
+
+		if err := yaml.Unmarshal(ruleBytes, &r); err != nil {
+			return nil, &ErrParseYaml{Err: err}
 		}
-		return nil
-	}()
+
+		rules = append(rules, r)
+	}
+
+	return rules, nil
 }
 
 // Logsource represents the logsource field in sigma rule
@@ -145,3 +150,26 @@ func NewRuleFileList(dirs []string) ([]string, error) {
 	}
 	return out, nil
 }
+
+func splitMultipartYAML(resources []byte) ([][]byte, error) {
+	dec := yaml.NewDecoder(bytes.NewReader(resources))
+	var res [][]byte
+	for {
+		var value interface{}
+		err := dec.Decode(&value)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		valueBytes, err := yaml.Marshal(value)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, valueBytes)
+	}
+	return res, nil
+}
+
+// var allByteSlices, err = SplitYAML([]byte(sampleYAML))

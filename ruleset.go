@@ -11,13 +11,6 @@ type Config struct {
 	// root directory for recursive rule search
 	// rules must be readable files with "yml" suffix
 	Directory []string
-	// by default, a rule parse fail will simply increment Ruleset.Failed counter when failing to
-	// parse yaml or rule AST
-	// this parameter will cause an early error return instead
-	FailOnRuleParse, FailOnYamlParse bool
-	// by default, we will collapse whitespace for both rules and data of non-regex rules and non-regex compared data
-	// setthig this to true turns that behavior off
-	NoCollapseWS bool
 }
 
 func (c Config) validate() error {
@@ -42,12 +35,12 @@ type Ruleset struct {
 
 	Rules []*Tree
 	root  []string
-
-	Total, Ok, Failed, Unsupported int
 }
 
 // NewRuleset instanciates a Ruleset object
 func NewRuleset(c Config) (*Ruleset, error) {
+	var err error
+
 	if err := c.validate(); err != nil {
 		return nil, err
 	}
@@ -55,44 +48,25 @@ func NewRuleset(c Config) (*Ruleset, error) {
 	if err != nil {
 		return nil, err
 	}
-	var fail, unsupp int
-	rules, err := NewRuleList(files, !c.FailOnYamlParse, c.NoCollapseWS)
+	rules, err := RulesFromFiles(files)
 	if err != nil {
-		switch e := err.(type) {
-		case ErrBulkParseYaml:
-			fail += len(e.Errs)
-		default:
-			return nil, err
-		}
+		return nil, err
 	}
+
 	set := make([]*Tree, 0)
-loop:
+
 	for _, raw := range rules {
-		if raw.Multipart {
-			unsupp++
-			continue loop
-		}
 		tree, err := NewTree(raw)
 		if err != nil {
-			switch err.(type) {
-			case ErrUnsupportedToken, *ErrUnsupportedToken:
-				unsupp++
-			default:
-				fail++
-			}
-			continue loop
+			return nil, err
 		}
 		set = append(set, tree)
 	}
+
 	return &Ruleset{
-		mu:          &sync.RWMutex{},
-		root:        c.Directory,
-		Rules:       set,
-		Failed:      fail,
-		Ok:          len(set),
-		Unsupported: unsupp,
-		Total:       len(files),
-	}, nil
+		mu:    &sync.RWMutex{},
+		Rules: set,
+	}, err
 }
 
 func (r *Ruleset) EvalAll(e Event) (Results, bool) {

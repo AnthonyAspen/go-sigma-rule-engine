@@ -29,10 +29,7 @@ func main() {
 
 	// ruleset setup
 	ruleset, err := sigma.NewRuleset(sigma.Config{
-		Directory:       strings.Split(*flagRuleSetPath, ";"),
-		NoCollapseWS:    false,
-		FailOnRuleParse: false,
-		FailOnYamlParse: false,
+		Directory: strings.Split(*flagRuleSetPath, ";"),
 	})
 	if err != nil {
 		log.Fatal(err)

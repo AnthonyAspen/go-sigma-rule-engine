@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ func main() {
 		log.Println(f)
 	}
 	log.Println("Parsing rule yaml files")
-	rules, err := sigma.NewRuleList(files, true, false)
+	rules, err := sigma.RulesFromFiles(files)
 	if err != nil {
 		switch err.(type) {
 		case sigma.ErrBulkParseYaml:
@@ -53,25 +53,18 @@ func main() {
 	log.Printf("Got %d rules from yaml\n", len(rules))
 	log.Println("Parsing rules into AST")
 	c := &counts{}
-loop:
 	for _, raw := range rules {
-		log.Print(raw.Path)
-		if raw.Multipart {
-			c.unsupported++
-			continue loop
-		}
 		_, err := sigma.NewTree(raw)
 		if err != nil {
 			switch err.(type) {
 			case sigma.ErrUnsupportedToken:
 				c.unsupported++
-				log.Printf("%s: %s\n", err, raw.Path)
+				log.Printf("%s: \n", err)
 			default:
 				c.fail++
 				log.Printf("%s\n", err)
 			}
 		} else {
-			log.Printf("%s: ok\n", raw.Path)
 			c.ok++
 		}
 	}

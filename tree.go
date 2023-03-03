@@ -9,7 +9,7 @@ import (
 // Tree represents the full AST for a sigma rule
 type Tree struct {
 	Root Branch
-	Rule *RuleHandle
+	Rule *Rule
 }
 
 // Match implements Matcher
@@ -37,7 +37,7 @@ func (t Tree) Eval(e Event) (*Result, bool) {
 }
 
 // NewTree parses rule handle into an abstract syntax tree
-func NewTree(r RuleHandle) (*Tree, error) {
+func NewTree(r Rule) (*Tree, error) {
 	if r.Detection == nil {
 		return nil, ErrMissingDetection{}
 	}
@@ -47,10 +47,9 @@ func NewTree(r RuleHandle) (*Tree, error) {
 	}
 
 	p := &parser{
-		lex:          lex(expr),
-		condition:    expr,
-		sigma:        r.Detection,
-		noCollapseWS: r.NoCollapseWS,
+		lex:       lex(expr),
+		condition: expr,
+		sigma:     r.Detection,
 	}
 	if err := p.run(); err != nil {
 		return nil, err
