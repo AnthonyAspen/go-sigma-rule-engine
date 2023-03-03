@@ -47,7 +47,7 @@ func RulesFromFiles(files []string) ([]Rule, error) {
 
 		var r Rule
 
-		if bytes.HasPrefix(data, []byte("---")) && bytes.Contains(data, []byte("---")) {
+		if bytes.Contains(data, []byte("---")) {
 			multipartData, err := splitMultipartYAML(data)
 			if err != nil {
 				return nil, err
