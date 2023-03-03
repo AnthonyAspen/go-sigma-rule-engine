@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/AnthonyAspen/go-sigma-rule-engine"
 	"github.com/markuskont/datamodels"
-	"github.com/markuskont/go-sigma-rule-engine"
 )
 
 var (
