@@ -1,6 +1,6 @@
 # warning: the work is extremely unstable, don't use in production code and if you're not prepared to resolve some issues that can occur
 # Fork of go-sigma-rule-engine
-#  Implemented support for multipart yml files (several rules in one yml file divided with "---")
+# Added support for correlation 
 # removed redundant (imho) structs
 > Golang library that implements a sigma log rule parser and match engine.
 
