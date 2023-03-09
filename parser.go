@@ -57,9 +57,6 @@ func (p *parser) parse() error {
 // collect gathers all items from lexer and does preliminary sequence validation
 func (p *parser) collect() error {
 	for item := range p.lex.items {
-		if item.T == TokUnsupp {
-			return ErrUnsupportedToken{Msg: item.Val}
-		}
 		if p.previous.T != TokBegin && !validTokenSequence(p.previous.T, item.T) {
 			return ErrInvalidTokenSeq{
 				Prev:      p.previous,

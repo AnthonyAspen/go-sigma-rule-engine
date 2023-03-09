@@ -9,7 +9,7 @@ import (
 // Tree represents the full AST for a sigma rule
 type Tree struct {
 	Root Branch
-	Rule *Rule
+	Rule Rule
 }
 
 // Match implements Matcher
@@ -17,27 +17,17 @@ func (t Tree) Match(e Event) (bool, bool) {
 	return t.Root.Match(e)
 }
 
-func (t Tree) Eval(e Event) (*Result, bool) {
+func (t Tree) Eval(e Event) bool {
 	match, applicable := t.Match(e)
-	if !applicable {
-		return nil, false
+	if !applicable || t.Rule != nil || !match {
+		return false
 	}
-	if t.Rule == nil && match {
-		return &Result{}, true
-	}
-	if match {
-		return &Result{
-			ID:          t.Rule.ID,
-			Title:       t.Rule.Title,
-			Tags:        t.Rule.Tags,
-			Description: t.Rule.Description,
-		}, true
-	}
-	return nil, false
+
+	return true
 }
 
 // NewTree parses rule handle into an abstract syntax tree
-func NewTree(r Rule) (*Tree, error) {
+func (r SimpleRule) NewTree() (*Tree, error) {
 	if r.Detection == nil {
 		return nil, ErrMissingDetection{}
 	}
@@ -220,7 +210,7 @@ func extractWildcardIdents(d Detection, g *glob.Glob) ([]interface{}, error) {
 
 func extractAllToRules(d Detection, noCollapseWS bool) ([]Branch, error) {
 	rules := make([]Branch, 0)
-	for k, v := range d.Extract() {
+	for k, v := range d.ExtractCondition() {
 		b, err := newRuleFromIdent(v, checkIdentType(k, v), noCollapseWS)
 		if err != nil {
 			return nil, err

@@ -683,7 +683,7 @@ func TestTokenCollect(t *testing.T) {
 		}
 		if err := p.collect(); err != nil {
 			switch err.(type) {
-			case ErrUnsupportedToken:
+			case ErrInvalidTokenSeq:
 			default:
 				t.Fatal(err)
 			}
@@ -693,7 +693,7 @@ func TestTokenCollect(t *testing.T) {
 
 func TestParse(t *testing.T) {
 	for _, c := range parseTestCases {
-		var rule Rule
+		var rule SimpleRule
 		if err := yaml.Unmarshal([]byte(c.Rule), &rule); err != nil {
 			t.Fatalf("rule parse case %d failed to unmarshal yaml, %s", c.ID, err)
 		}

@@ -14,7 +14,7 @@ func TestTreeParse(t *testing.T) {
 		if err := yaml.Unmarshal([]byte(c.Rule), &rule); err != nil {
 			t.Fatalf("tree parse case %d failed to unmarshal yaml, %s", c.ID, err)
 		}
-		p, err := NewTree(rule)
+		p, err := rule.NewTree()
 		if err != nil {
 			t.Fatalf("tree parse case %d failed: %s", c.ID, err)
 		}
@@ -49,7 +49,7 @@ func benchmarkCase(b *testing.B, rawRule, rawEvent string) {
 	if err := yaml.Unmarshal([]byte(parseTestCases[0].Rule), &rule); err != nil {
 		b.Fail()
 	}
-	p, err := NewTree(rule)
+	p, err := rule.NewTree()
 	if err != nil {
 		b.Fail()
 	}

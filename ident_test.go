@@ -337,7 +337,7 @@ var identCases = append(keywordCases, selectionCases...)
 
 func TestParseIdent(t *testing.T) {
 	for i, c := range identCases {
-		var r Rule
+		var r SimpleRule
 		if err := yaml.Unmarshal([]byte(c.Rule), &r); err != nil {
 			t.Fatalf("ident case %d yaml parse fail: %s", i+1, err)
 		}

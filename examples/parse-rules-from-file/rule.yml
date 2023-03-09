@@ -1,0 +1,26 @@
+title: failed_login
+name: failed_login
+id: 5260017E-6FA0-420C-9EA4-014D17B44049
+namespace: failed_login
+description: Detects failed login attempts
+status: experimental
+references:
+    - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625
+tags:
+    - authentication
+    - login
+logsource:
+    product: windows
+    category: security
+detection:
+    selection1:
+        event_id: 4625
+    selection2:
+        channel: Security
+    condition: selection1 or (selection1 and selection2)
+output:
+    title: "{{ LogonType }} login failed for {{ User }} on {{ Computer }}"
+    description: "A login attempt failed for user {{ User }} on computer {{ Computer }}"
+    severity: low
+falsepositives: 
+    - This could trigger on normal login failures, so it should be reviewed carefully.

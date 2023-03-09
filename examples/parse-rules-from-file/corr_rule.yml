@@ -1,0 +1,13 @@
+### Правило корреляции: Множественные попытки входа с неверными данными в течение 2 минут 10 попыток  
+action: correlation
+name: many_failed_logins
+type: event_count
+rules: 
+  - failed_login
+group-by:
+  - user
+  - workstation
+  - ip_address
+timespan: 120s
+condition:
+  gte: 10

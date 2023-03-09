@@ -56,7 +56,7 @@ func NewRuleset(c Config) (*Ruleset, error) {
 	set := make([]*Tree, 0)
 
 	for _, raw := range rules {
-		tree, err := NewTree(raw)
+		tree, err := raw.NewTree()
 		if err != nil {
 			return nil, err
 		}
@@ -67,19 +67,4 @@ func NewRuleset(c Config) (*Ruleset, error) {
 		mu:    &sync.RWMutex{},
 		Rules: set,
 	}, err
-}
-
-func (r *Ruleset) EvalAll(e Event) (Results, bool) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	results := make(Results, 0)
-	for _, rule := range r.Rules {
-		if res, match := rule.Eval(e); match {
-			results = append(results, *res)
-		}
-	}
-	if len(results) > 0 {
-		return results, true
-	}
-	return nil, false
 }

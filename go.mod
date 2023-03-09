@@ -1,6 +1,6 @@
 module github.com/AnthonyAspen/go-sigma-rule-engine
 
-go 1.20
+go 1.19
 
 require (
 	github.com/gobwas/glob v0.2.3

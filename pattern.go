@@ -20,12 +20,6 @@ const (
 	TextPatternKeyword
 )
 
-// func isValidSpecifier(in string) bool {
-// 	return in == "contains" ||
-// 		in == "endswith" ||
-// 		in == "startswith"
-// }
-
 // NumMatcher is an atomic pattern for numeric item or list of items
 type NumMatcher interface {
 	// NumMatch implements NumMatcher
@@ -74,9 +68,6 @@ var gWSCollapse = regexp.MustCompile(`\s+`)
 // returns the string with whitespace collapsed (1+ spaces, tabs, etc... become single space); otherwise
 // just returns the unmodified str; this only applies to non-regex rules and data hitting non-regex rules
 func handleWhitespace(str string, noCollapseWS bool) string {
-	if noCollapseWS { // do we collapse whitespace or not?  See config.NoCollapseWS (we collapse by default)
-		return str
-	}
 	return gWSCollapse.ReplaceAllString(str, " ")
 }
 
@@ -101,11 +92,11 @@ const (
 // wildcard).
 //
 // Simga escaping rules per spec:
-//	* Plain backslash not followed by a wildcard can be expressed as single '\' or double backslash '\\'. For simplicity reasons the single notation is recommended.
-//	* A wildcard has to be escaped to handle it as a plain character: '\*'
-//	* The backslash before a wildcard has to be escaped to handle the value as a backslash followed by a wildcard: '\\*'
-//	* Three backslashes are necessary to escape both, the backslash and the wildcard and handle them as plain values: '\\\*'
-//	* Three or four backslashes are handled as double backslash. Four are recommended for consistency reasons: '\\\\' results in the plain value '\\'
+//   - Plain backslash not followed by a wildcard can be expressed as single '\' or double backslash '\\'. For simplicity reasons the single notation is recommended.
+//   - A wildcard has to be escaped to handle it as a plain character: '\*'
+//   - The backslash before a wildcard has to be escaped to handle the value as a backslash followed by a wildcard: '\\*'
+//   - Three backslashes are necessary to escape both, the backslash and the wildcard and handle them as plain values: '\\\*'
+//   - Three or four backslashes are handled as double backslash. Four are recommended for consistency reasons: '\\\\' results in the plain value '\\'
 func escapeSigmaForGlob(str string) string {
 	if str == "" { // quick out if empty
 		return ""
